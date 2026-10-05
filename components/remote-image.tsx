@@ -10,8 +10,8 @@ import { resolveImageUrl } from '@/lib/utils'
  * as AboutPhoto, generalized for certifications/project thumbnails.
  */
 export function RemoteImage({
-  src, alt, className, fallback,
-}: { src?: string; alt: string; className?: string; fallback: React.ReactNode }) {
+  src, alt, className, fallback, onClick,
+}: { src?: string; alt: string; className?: string; fallback: React.ReactNode; onClick?: () => void }) {
   const [ready, setReady] = useState(false)
   const resolved = src ? resolveImageUrl(src) : ''
 
@@ -28,7 +28,7 @@ export function RemoteImage({
 
   if (resolved && ready) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={resolved} alt={alt} className={className} />
+    return <img src={resolved} alt={alt} className={className} onClick={onClick} />
   }
   return <>{fallback}</>
 }

@@ -13,6 +13,7 @@ import { ChannelChart } from '@/components/channel-chart'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { RemoteImage } from '@/components/remote-image'
 import { Modal } from '@/components/modal'
+import { Lightbox } from '@/components/lightbox'
 import { PaginationDots } from '@/components/pagination-dots'
 import { toneText } from '@/lib/utils'
 import { iconMap } from '@/lib/icon-map'
@@ -45,6 +46,7 @@ export default function Page() {
   const [activeProject, setActiveProject] = useState<number | null>(null)
   const [activeCert, setActiveCert] = useState<number | null>(null)
   const [activeCapability, setActiveCapability] = useState<number | null>(null)
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
   const [testimonial, setTestimonial] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [certPage, setCertPage] = useState(0)
@@ -62,11 +64,14 @@ export default function Page() {
   const visibleProjects = projects.slice(projectPage * PROJECTS_PER_PAGE, projectPage * PROJECTS_PER_PAGE + PROJECTS_PER_PAGE)
 
   // Escape-to-close for whichever modal is open, plus a body scroll lock so
-  // the page behind it can't scroll while it's up.
+  // the page behind it can't scroll while it's up. The lightbox sits on top
+  // of the other modals, so Escape closes just that layer first.
   useEffect(() => {
-    if (activeProject === null && activeCert === null && activeCapability === null) return
+    if (activeProject === null && activeCert === null && activeCapability === null && lightbox === null) return
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setActiveProject(null); setActiveCert(null); setActiveCapability(null) }
+      if (e.key !== 'Escape') return
+      if (lightbox !== null) { setLightbox(null); return }
+      setActiveProject(null); setActiveCert(null); setActiveCapability(null)
     }
     document.addEventListener('keydown', onKeyDown)
     const prevOverflow = document.body.style.overflow
@@ -75,7 +80,7 @@ export default function Page() {
       document.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = prevOverflow
     }
-  }, [activeProject, activeCert, activeCapability])
+  }, [activeProject, activeCert, activeCapability, lightbox])
 
   const handleContactSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -440,8 +445,9 @@ export default function Page() {
       <RemoteImage
         src={projects[activeProject].thumbnailUrl}
         alt={`${projects[activeProject].title} thumbnail`}
-        className="-mx-6 -mt-6 mb-8 aspect-2/1 w-[calc(100%+3rem)] rounded-2xl object-cover sm:-mx-8 sm:-mt-8 sm:w-[calc(100%+4rem)] md:-mx-12 md:-mt-12 md:w-[calc(100%+6rem)]"
+        className="-mx-6 -mt-6 mb-8 aspect-2/1 w-[calc(100%+3rem)] cursor-zoom-in rounded-2xl object-cover sm:-mx-8 sm:-mt-8 sm:w-[calc(100%+4rem)] md:-mx-12 md:-mt-12 md:w-[calc(100%+6rem)]"
         fallback={<></>}
+        onClick={() => setLightbox({ src: projects[activeProject].thumbnailUrl ?? '', alt: `${projects[activeProject].title} thumbnail` })}
       />
       <p className="eyebrow">{workHeading.modalEyebrowPrefix} / {projects[activeProject].category}</p>
       <h2 id="project-modal-title" className="mt-5 text-3xl font-semibold sm:text-4xl">{projects[activeProject].title}</h2>
@@ -454,12 +460,13 @@ export default function Page() {
       <RemoteImage
         src={certifications[activeCert].imageUrl}
         alt={`${certifications[activeCert].name} certificate`}
-        className="mb-6 w-full rounded-2xl border border-foreground/10 object-contain"
+        className="mb-6 w-full cursor-zoom-in rounded-2xl border border-foreground/10 object-contain"
         fallback={
           <div className="mb-6 flex aspect-4/3 w-full items-center justify-center rounded-2xl border border-dashed border-foreground/15 bg-foreground/2 text-center text-sm text-muted-foreground">
             No certificate image added yet.
           </div>
         }
+        onClick={() => setLightbox({ src: certifications[activeCert].imageUrl ?? '', alt: `${certifications[activeCert].name} certificate` })}
       />
       <p className="eyebrow">{certificationsHeading.eyebrow}</p>
       <h2 id="cert-modal-title" className="mt-5 text-3xl font-semibold">{certifications[activeCert].name}</h2>
@@ -483,5 +490,7 @@ export default function Page() {
         </Modal>
       )
     })()}
+
+    {lightbox && <Lightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
   </main>
 }
