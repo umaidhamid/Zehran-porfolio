@@ -3,16 +3,26 @@
 import type { ReactNode } from 'react'
 import {
   FileText, User, Compass, Sparkles, Grid2x2, Info, Award, Building2, GraduationCap, Briefcase,
-  Share2, GitBranch, FolderKanban, Quote, BarChart3, Mail, PanelBottom, type LucideIcon,
+  Share2, GitBranch, FolderKanban, Quote, BarChart3, Mail, PanelBottom, EyeOff, type LucideIcon,
 } from 'lucide-react'
 import {
   TextField, TextAreaField, NumberField, SelectField, StringListField, NumberListField,
-  TONE_OPTIONS, ICON_OPTIONS, type Updater,
+  ToggleField, ImageUploadField, TONE_OPTIONS, ICON_OPTIONS, type Updater,
 } from '@/components/admin/fields'
 import { ArrayEditor } from '@/components/admin/array-editor'
-import type { SiteData } from '@/lib/site-data'
+import type { SectionKey, SiteData } from '@/lib/site-data'
 
 type FieldSet = { content: SiteData; onChange: Updater }
+
+/** Best-effort cleanup — an item's uploaded image is deleted from Cloudinary right before the item itself is removed, so storage doesn't accumulate orphaned files. */
+function deleteCloudinaryAsset(publicId?: string) {
+  if (!publicId) return
+  fetch('/api/upload-image', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ publicId }),
+  }).catch(() => {})
+}
 
 interface EditorSection {
   id: string
@@ -22,7 +32,37 @@ interface EditorSection {
   render: (f: FieldSet) => ReactNode
 }
 
+const SECTION_TOGGLES: { key: SectionKey; label: string; hint?: string }[] = [
+  { key: 'hero', label: 'Hero', hint: 'The top intro banner — turning this off hides the very top of the page.' },
+  { key: 'platforms', label: 'Platforms strip', hint: 'The scrolling "Platforms & tools" marquee.' },
+  { key: 'about', label: 'About' },
+  { key: 'certifications', label: 'Certifications', hint: 'Shown inside About.' },
+  { key: 'experience', label: 'Experience' },
+  { key: 'education', label: 'Education', hint: 'Shown inside Experience.' },
+  { key: 'services', label: 'Services' },
+  { key: 'social', label: 'Social Media Management & Growth' },
+  { key: 'process', label: 'Process' },
+  { key: 'work', label: 'Selected Work' },
+  { key: 'performanceSnapshot', label: 'Performance snapshot', hint: 'The channel ROAS chart.' },
+  { key: 'testimonials', label: 'Testimonials' },
+  { key: 'contact', label: 'Contact', hint: 'Turning this off also hides the contact form used for submissions.' },
+  { key: 'footer', label: 'Footer' },
+]
+
 const sections: EditorSection[] = [
+  {
+    id: 'visibility',
+    label: 'Section Visibility',
+    icon: EyeOff,
+    description: 'Completely hide any section from the public site without deleting its content — flip it back on any time.',
+    render: (f) => <div className="divide-y divide-foreground/10 rounded-2xl border border-foreground/10">
+      {SECTION_TOGGLES.map((toggle) => (
+        <div key={toggle.key} className="px-5 py-4">
+          <ToggleField {...f} path={['visibility', toggle.key]} label={toggle.label} hint={toggle.hint} />
+        </div>
+      ))}
+    </div>,
+  },
   {
     id: 'metadata',
     label: 'Metadata',
@@ -156,7 +196,7 @@ const sections: EditorSection[] = [
     id: 'certifications',
     label: 'Certifications',
     icon: Award,
-    description: 'Shown inside the About section, in place of stats. Paste a direct image link to show the certificate image when a visitor clicks the card — for Google Drive, share the file as "Anyone with the link" and paste that link, it\'s converted automatically; for Google Photos, use the direct image URL (open the photo, right-click the image itself, and copy its address).',
+    description: 'Shown inside the About section, in place of stats. Upload the certificate image directly — it\'s hosted on Cloudinary, and removing a certification (or replacing its image) deletes the old upload from Cloudinary automatically.',
     render: (f) => <>
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField {...f} path={['certificationsHeading', 'eyebrow']} label="Eyebrow" />
@@ -166,12 +206,13 @@ const sections: EditorSection[] = [
         {...f}
         path={['certifications']}
         itemLabel={(item: any) => item.name}
-        createItem={() => ({ name: 'New certification', issuer: '', year: '', imageUrl: '' })}
+        createItem={() => ({ name: 'New certification', issuer: '', year: '', imageUrl: '', imagePublicId: '' })}
+        onBeforeRemove={(item: any) => deleteCloudinaryAsset(item.imagePublicId)}
         renderItem={(itemPath) => <>
           <TextField {...f} path={[...itemPath, 'name']} label="Name" />
           <TextField {...f} path={[...itemPath, 'issuer']} label="Issuer" />
           <TextField {...f} path={[...itemPath, 'year']} label="Year" />
-          <TextField {...f} path={[...itemPath, 'imageUrl']} label="Certificate image URL (Google Drive / Photos link)" />
+          <ImageUploadField {...f} path={[...itemPath, 'imageUrl']} publicIdPath={[...itemPath, 'imagePublicId']} label="Certificate image" />
         </>}
       />
     </>,
@@ -314,7 +355,7 @@ const sections: EditorSection[] = [
     id: 'work',
     label: 'Work',
     icon: FolderKanban,
-    description: 'Case studies shown in the Work section. Add a thumbnail image URL (Google Drive / Photos direct link) to replace the gradient art with a real image on the card and in the case study modal.',
+    description: 'Case studies shown in the Work section. Upload a thumbnail to replace the gradient art with a real image on the card and in the case study modal — removing a project (or replacing its thumbnail) deletes the old upload from Cloudinary automatically.',
     render: (f) => <>
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField {...f} path={['workHeading', 'eyebrow']} label="Eyebrow" />
@@ -329,14 +370,15 @@ const sections: EditorSection[] = [
         {...f}
         path={['projects']}
         itemLabel={(item: any) => item.title}
-        createItem={() => ({ title: 'New project', category: '', description: '', extendedNote: '', color: 'from-[#1e3f8f] to-[#5c8dff]', metrics: [], thumbnailUrl: '' })}
+        createItem={() => ({ title: 'New project', category: '', description: '', extendedNote: '', color: 'from-[#1e3f8f] to-[#5c8dff]', metrics: [], thumbnailUrl: '', thumbnailPublicId: '' })}
+        onBeforeRemove={(item: any) => deleteCloudinaryAsset(item.thumbnailPublicId)}
         renderItem={(itemPath) => <>
           <TextField {...f} path={[...itemPath, 'title']} label="Title" />
           <TextField {...f} path={[...itemPath, 'category']} label="Category" />
           <div className="sm:col-span-2"><TextAreaField {...f} path={[...itemPath, 'description']} label="Card description" /></div>
           <div className="sm:col-span-2"><TextAreaField {...f} path={[...itemPath, 'extendedNote']} label="Modal extended note" /></div>
           <TextField {...f} path={[...itemPath, 'color']} label="Gradient (Tailwind from-…/to-…)" />
-          <TextField {...f} path={[...itemPath, 'thumbnailUrl']} label="Thumbnail image URL (optional)" />
+          <ImageUploadField {...f} path={[...itemPath, 'thumbnailUrl']} publicIdPath={[...itemPath, 'thumbnailPublicId']} label="Thumbnail image (optional)" />
           <div className="sm:col-span-2"><StringListField {...f} path={[...itemPath, 'metrics']} label="Metrics" /></div>
         </>}
       />

@@ -24,12 +24,23 @@ const PROJECTS_PER_PAGE = 3
 export default function Page() {
   const { data } = useSiteData()
   const {
-    profile, nav, hero, platformsLabel, platforms, about,
+    profile, nav, visibility, hero, platformsLabel, platforms, about,
     certificationsHeading, certifications, experienceHeading, experience, educationHeading, education,
     servicesHeading, services,
     socialHeading, socialStats, socialCapabilities,
     processHeading, process, workHeading, projects, testimonials, performanceSnapshot, contact, footer,
   } = data
+
+  // Nav anchors whose section can be hidden via admin settings — hide the
+  // matching link too, so it never points at a section that isn't there.
+  const navSectionByHref: Record<string, keyof typeof visibility> = {
+    '#about': 'about', '#certifications': 'certifications', '#experience': 'experience',
+    '#education': 'education', '#services': 'services', '#work': 'work', '#process': 'process',
+  }
+  const visibleNavLinks = nav.links.filter((link) => {
+    const key = navSectionByHref[link.href]
+    return !key || visibility[key] !== false
+  })
 
   const [activeProject, setActiveProject] = useState<number | null>(null)
   const [activeCert, setActiveCert] = useState<number | null>(null)
@@ -103,8 +114,8 @@ export default function Page() {
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <a href="#top" className="font-mono text-sm font-bold tracking-[0.24em] text-foreground">{profile.brandMark}<span className="text-primary">.</span></a>
         <div className="hidden items-center gap-8 text-xs uppercase tracking-[0.18em] text-muted-foreground md:flex">
-          {nav.links.map((link) => <a key={link.href} href={link.href} className="hover:text-foreground">{link.label}</a>)}
-          <a href={nav.cta.href} className="rounded-full border border-primary/50 px-4 py-2 text-primary hover:bg-primary hover:text-primary-foreground">{nav.cta.label}</a>
+          {visibleNavLinks.map((link) => <a key={link.href} href={link.href} className="hover:text-foreground">{link.label}</a>)}
+          {visibility.contact !== false && <a href={nav.cta.href} className="rounded-full border border-primary/50 px-4 py-2 text-primary hover:bg-primary hover:text-primary-foreground">{nav.cta.label}</a>}
         </div>
         <div className="flex items-center gap-3">
           <ThemeToggle className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/15 text-muted-foreground transition-colors hover:border-primary hover:text-primary" />
@@ -112,13 +123,13 @@ export default function Page() {
         </div>
       </div>
       {menuOpen && <div className="flex flex-col gap-5 pb-2 pt-6 text-sm uppercase tracking-widest md:hidden">
-        {nav.links.map((link) => <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>)}
-        <a href={nav.cta.href} onClick={() => setMenuOpen(false)}>{nav.cta.label}</a>
+        {visibleNavLinks.map((link) => <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>)}
+        {visibility.contact !== false && <a href={nav.cta.href} onClick={() => setMenuOpen(false)}>{nav.cta.label}</a>}
       </div>}
     </nav>
 
     {/* HERO */}
-    <section id="top" className="grain-bg relative flex min-h-screen items-center px-6 pb-20 pt-32 md:px-12">
+    {visibility.hero !== false && <section id="top" className="grain-bg relative flex min-h-screen items-center px-6 pb-20 pt-32 md:px-12">
       <div className="grid-lines absolute inset-0 -z-10" />
       <div className="mx-auto grid w-full max-w-7xl items-center gap-16 lg:grid-cols-[1.1fr_.9fr]">
         <div>
@@ -153,18 +164,18 @@ export default function Page() {
           spendBadge={hero.scene.spendBadge}
         />
       </div>
-    </section>
+    </section>}
 
     {/* TRUSTED PLATFORMS */}
-    <section className="border-y border-foreground/10 bg-card/40 py-8">
+    {visibility.platforms !== false && <section className="border-y border-foreground/10 bg-card/40 py-8">
       <Reveal>
         <p className="mb-6 text-center font-mono-tight text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{platformsLabel}</p>
         <Marquee items={platforms} />
       </Reveal>
-    </section>
+    </section>}
 
     {/* ABOUT */}
-    <section id="about" className="border-b border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
+    {visibility.about !== false && <section id="about" className="border-b border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.9fr_1.1fr]">
         <Reveal>
           <AboutPhoto photoSrc={profile.photo} photoAlt={profile.photoAlt} name={profile.name} />
@@ -173,7 +184,7 @@ export default function Page() {
         </Reveal>
         <Reveal delay={120} className="max-w-2xl">
           <p className="text-xl leading-relaxed text-muted-foreground">{about.paragraph}</p>
-          <div id="certifications" className="mt-10 border-t border-foreground/10 pt-8">
+          {visibility.certifications !== false && <div id="certifications" className="mt-10 border-t border-foreground/10 pt-8">
             <p className="font-mono-tight text-xs uppercase tracking-widest text-muted-foreground">{certificationsHeading.eyebrow}</p>
             <h3 className="mt-2 text-lg font-semibold text-foreground">{certificationsHeading.heading}</h3>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -202,16 +213,16 @@ export default function Page() {
               })}
             </div>
             <PaginationDots page={certPage} pageCount={certPageCount} onChange={setCertPage} label="certifications" />
-          </div>
+          </div>}
         </Reveal>
       </div>
-    </section>
+    </section>}
 
     {/* EXPERIENCE & EDUCATION */}
-    <section id="experience" className="border-y border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
+    {visibility.experience !== false && <section id="experience" className="border-y border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
       <div className="mx-auto max-w-7xl">
         <Reveal><p className="eyebrow">{experienceHeading.eyebrow}</p><h2 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">{experienceHeading.heading}</h2></Reveal>
-        <div className="mt-14 grid gap-16 lg:grid-cols-[1.3fr_1fr]">
+        <div className={`mt-14 grid gap-16 ${visibility.education !== false ? 'lg:grid-cols-[1.3fr_1fr]' : ''}`}>
           <div className="relative max-w-2xl">
             <div className="absolute left-[19px] top-2 bottom-2 w-px bg-foreground/10" />
             <div className="space-y-10">
@@ -228,7 +239,7 @@ export default function Page() {
             </div>
           </div>
 
-          <div id="education">
+          {visibility.education !== false && <div id="education">
             <p className="font-mono-tight text-xs uppercase tracking-widest text-muted-foreground">{educationHeading.eyebrow}</p>
             <h3 className="mt-2 text-lg font-semibold text-foreground">{educationHeading.heading}</h3>
             <div className="mt-6 space-y-4">
@@ -245,13 +256,13 @@ export default function Page() {
                 </Reveal>
               ))}
             </div>
-          </div>
+          </div>}
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* SERVICES */}
-    <section id="services" className="px-6 py-24 md:px-12">
+    {visibility.services !== false && <section id="services" className="px-6 py-24 md:px-12">
       <div className="mx-auto max-w-7xl">
         <Reveal><p className="eyebrow">{servicesHeading.eyebrow}</p><h2 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">{servicesHeading.heading}</h2></Reveal>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
@@ -272,10 +283,10 @@ export default function Page() {
           })}
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* SOCIAL MEDIA MANAGEMENT & GROWTH */}
-    <section id="social" className="border-y border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
+    {visibility.social !== false && <section id="social" className="border-y border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.85fr_1.15fr]">
         <Reveal>
           <p className="eyebrow">{socialHeading.eyebrow}</p>
@@ -315,10 +326,10 @@ export default function Page() {
           </div>
         </Reveal>
       </div>
-    </section>
+    </section>}
 
     {/* PROCESS */}
-    <section id="process" className="border-y border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
+    {visibility.process !== false && <section id="process" className="border-y border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
       <div className="mx-auto max-w-7xl">
         <Reveal><p className="eyebrow">{processHeading.eyebrow}</p><h2 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">{processHeading.heading}</h2></Reveal>
         <div className="relative mt-16 grid gap-10 md:grid-cols-5">
@@ -332,14 +343,14 @@ export default function Page() {
           ))}
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* WORK */}
-    <section id="work" className="px-6 py-24 md:px-12">
+    {visibility.work !== false && <section id="work" className="px-6 py-24 md:px-12">
       <div className="mx-auto max-w-7xl">
         <div className="flex items-end justify-between gap-6">
           <Reveal><p className="eyebrow">{workHeading.eyebrow}</p><h2 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">{workHeading.heading}</h2></Reveal>
-          <a href={workHeading.linkHref} className="hidden items-center gap-2 text-sm text-primary md:flex">{workHeading.linkLabel} <ArrowUpRight size={16} /></a>
+          {visibility.contact !== false && <a href={workHeading.linkHref} className="hidden items-center gap-2 text-sm text-primary md:flex">{workHeading.linkLabel} <ArrowUpRight size={16} /></a>}
         </div>
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
           {visibleProjects.map((project, i) => {
@@ -368,18 +379,18 @@ export default function Page() {
         </div>
         <PaginationDots page={projectPage} pageCount={projectPageCount} onChange={setProjectPage} label="projects" />
       </div>
-    </section>
+    </section>}
 
     {/* PERFORMANCE SNAPSHOT */}
-    <section className="border-y border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
+    {visibility.performanceSnapshot !== false && <section className="border-y border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
       <div className="mx-auto max-w-5xl text-center">
         <Reveal><p className="eyebrow justify-center">{performanceSnapshot.eyebrow}</p><h2 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">{performanceSnapshot.heading}</h2><p className="mx-auto mt-5 max-w-xl text-muted-foreground">{performanceSnapshot.description}</p></Reveal>
         <Reveal delay={150} scale><ChannelChart channels={performanceSnapshot.channels} /></Reveal>
       </div>
-    </section>
+    </section>}
 
     {/* TESTIMONIALS */}
-    <section className="px-6 py-24 md:px-12">
+    {visibility.testimonials !== false && <section className="px-6 py-24 md:px-12">
       <div className="mx-auto max-w-4xl text-center">
         <Quote className="mx-auto text-primary" size={32} />
         <p className="mt-8 text-3xl font-medium leading-tight tracking-tight md:text-5xl">&ldquo;{testimonials[testimonial].quote}&rdquo;</p>
@@ -389,10 +400,10 @@ export default function Page() {
           <button aria-label="Next testimonial" onClick={() => setTestimonial((testimonial + 1) % testimonials.length)} className="rounded-full border border-foreground/15 p-3 hover:border-primary"><ChevronRight size={16} /></button>
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* CONTACT */}
-    <section id="contact" className="border-t border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
+    {visibility.contact !== false && <section id="contact" className="border-t border-foreground/10 bg-card/40 px-6 py-24 md:px-12">
       <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-[.9fr_1.1fr]">
         <Reveal>
           <p className="eyebrow">{contact.eyebrow}</p>
@@ -416,14 +427,14 @@ export default function Page() {
           </form>
         </Reveal>
       </div>
-    </section>
+    </section>}
 
-    <footer className="flex flex-col gap-6 px-6 py-8 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between md:px-12">
+    {visibility.footer !== false && <footer className="flex flex-col gap-6 px-6 py-8 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between md:px-12">
       <p>{footer.copyright}</p>
       <div className="flex items-center gap-5">
         {footer.links.map((link) => <a key={link.label} href={link.href} className="hover:text-foreground">{link.label}</a>)}
       </div>
-    </footer>
+    </footer>}
 
     {activeProject !== null && <Modal onClose={() => setActiveProject(null)} labelledBy="project-modal-title">
       <RemoteImage

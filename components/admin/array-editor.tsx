@@ -11,6 +11,7 @@ export function ArrayEditor<T>({
   createItem,
   itemLabel,
   renderItem,
+  onBeforeRemove,
 }: {
   content: any
   onChange: Updater
@@ -18,6 +19,8 @@ export function ArrayEditor<T>({
   createItem: () => T
   itemLabel?: (item: T, index: number) => string
   renderItem: (itemPath: PathKey[], item: T, index: number) => React.ReactNode
+  /** Fire-and-forget side effect run on the item just before it's removed — e.g. deleting its uploaded image from Cloudinary. */
+  onBeforeRemove?: (item: T) => void
 }) {
   const items: T[] = getPath(content, path) ?? []
 
@@ -27,11 +30,14 @@ export function ArrayEditor<T>({
     return setPath(prev, path, arr)
   })
 
-  const removeItem = (index: number) => onChange((prev) => {
-    const arr = (getPath(prev, path) ?? []).slice()
-    arr.splice(index, 1)
-    return setPath(prev, path, arr)
-  })
+  const removeItem = (index: number) => {
+    onBeforeRemove?.(items[index])
+    onChange((prev) => {
+      const arr = (getPath(prev, path) ?? []).slice()
+      arr.splice(index, 1)
+      return setPath(prev, path, arr)
+    })
+  }
 
   return (
     <div className="space-y-4">

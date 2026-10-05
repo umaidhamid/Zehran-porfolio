@@ -36,6 +36,32 @@ export const nav = {
   cta: { label: 'Book a call', href: '#contact' },
 }
 
+/**
+ * Per-section show/hide switches for the public site, edited from the admin
+ * "Section Visibility" settings panel. A key missing from stored data (e.g.
+ * a section added after a site was last saved) is treated as visible —
+ * callers should check `!== false`, never truthiness, so partial/stale
+ * records default to showing everything rather than hiding it.
+ */
+export const visibility = {
+  hero: true,
+  platforms: true,
+  about: true,
+  certifications: true,
+  experience: true,
+  education: true,
+  services: true,
+  social: true,
+  process: true,
+  work: true,
+  performanceSnapshot: true,
+  testimonials: true,
+  contact: true,
+  footer: true,
+}
+
+export type SectionKey = keyof typeof visibility
+
 export const hero = {
   eyebrow: profile.role,
   headline: 'I turn ad spend into predictable revenue.',
@@ -85,8 +111,10 @@ export const certifications: {
   name: string
   issuer: string
   year: string
-  /** Direct image link (e.g. a Google Drive "anyone with the link" share URL, or a Google Photos direct image URL). */
+  /** Cloudinary-hosted image URL (uploaded from the admin panel), or a direct link pasted in manually. */
   imageUrl?: string
+  /** Cloudinary public ID for the uploaded image above — only set when it was uploaded (not pasted), so it can be deleted from Cloudinary when replaced or removed. */
+  imagePublicId?: string
 }[] = [
   { name: 'Google Ads Certified', issuer: 'Google Skillshop', year: '2024', imageUrl: '' },
   { name: 'Meta Blueprint Certified', issuer: 'Meta', year: '2023', imageUrl: '' },
@@ -188,8 +216,10 @@ export const projects: {
   extendedNote: string
   color: string
   metrics: string[]
-  /** Direct image link for the card/modal art (e.g. Google Drive or Google Photos direct URL). Falls back to the gradient when empty. */
+  /** Cloudinary-hosted image URL (uploaded from the admin panel), or a direct link pasted in manually. Falls back to the gradient when empty. */
   thumbnailUrl?: string
+  /** Cloudinary public ID for the uploaded image above — only set when it was uploaded (not pasted), so it can be deleted from Cloudinary when replaced or removed. */
+  thumbnailPublicId?: string
 }[] = [
   {
     title: 'Verve Nutrition',
@@ -265,7 +295,7 @@ export const footer = {
 
 /** Full payload shape served by app/api/site-data and fetched via useSiteData(). */
 export const siteData = {
-  meta, profile, nav, hero, platformsLabel, platforms, about,
+  meta, profile, nav, visibility, hero, platformsLabel, platforms, about,
   certificationsHeading, certifications, experienceHeading, experience, educationHeading, education,
   servicesHeading, services,
   socialHeading, socialStats, socialCapabilities,
