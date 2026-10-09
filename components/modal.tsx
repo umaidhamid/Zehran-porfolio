@@ -21,14 +21,14 @@ export function Modal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#050602]/80 p-4 backdrop-blur-md sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#050602]/80 p-4 backdrop-blur-md duration-200 animate-in fade-in-0 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby={labelledBy}
       onClick={onClose}
     >
       <div
-        className={`relative flex max-h-[88vh] w-full ${maxWidthClassName} flex-col overflow-hidden rounded-3xl border border-foreground/15 bg-card shadow-2xl`}
+        className={`relative flex max-h-[88vh] w-full ${maxWidthClassName} flex-col overflow-hidden rounded-3xl border border-foreground/15 bg-card shadow-2xl duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2`}
         onClick={(e) => e.stopPropagation()}
       >
         <button

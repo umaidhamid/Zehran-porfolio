@@ -453,45 +453,44 @@ export default function Page() {
       </div>
     </footer>}
 
-    {activeProject !== null && <Modal onClose={() => setActiveProject(null)} labelledBy="project-modal-title" maxWidthClassName="max-w-[95vw] xl:max-w-6xl" noPadding>
-      <div className="grid lg:grid-cols-[1.1fr_1fr] lg:items-start">
-        <div className={`flex aspect-video items-center justify-center overflow-hidden rounded-b-2xl bg-gradient-to-br lg:aspect-auto lg:h-full lg:rounded-2xl lg:rounded-tl-none ${projects[activeProject].color}`}>
-          <RemoteImage
-            src={projects[activeProject].thumbnailUrl}
-            alt={`${projects[activeProject].title} thumbnail`}
-            className="h-full w-full cursor-zoom-in object-contain"
-            fallback={<></>}
-            onClick={() => setLightbox({ src: projects[activeProject].thumbnailUrl ?? '', alt: `${projects[activeProject].title} thumbnail` })}
-          />
-        </div>
-        <div className="p-6 sm:p-8 md:p-12">
-          <p className="eyebrow">{workHeading.modalEyebrowPrefix} / {projects[activeProject].category}</p>
+    {activeProject !== null && <Modal onClose={() => setActiveProject(null)} labelledBy="project-modal-title" maxWidthClassName="max-w-[95vw] xl:max-w-5xl" noPadding>
+      <div className={`relative flex aspect-video items-center justify-center overflow-hidden rounded-b-2xl bg-gradient-to-br sm:aspect-21/9 ${projects[activeProject].color}`}>
+        <RemoteImage
+          src={projects[activeProject].thumbnailUrl}
+          alt={`${projects[activeProject].title} thumbnail`}
+          className="h-full w-full cursor-zoom-in object-cover"
+          fallback={<></>}
+          onClick={() => setLightbox({ src: projects[activeProject].thumbnailUrl ?? '', alt: `${projects[activeProject].title} thumbnail` })}
+        />
+        <span className="pointer-events-none absolute bottom-4 left-4 rounded-full bg-black/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-widest text-white backdrop-blur-sm sm:bottom-6 sm:left-6">{projects[activeProject].category}</span>
+      </div>
+      <div className="p-6 sm:p-8 md:p-12">
+        <div className="max-w-2xl">
+          <p className="eyebrow">{workHeading.modalEyebrowPrefix}</p>
           <h2 id="project-modal-title" className="mt-5 text-3xl font-semibold sm:text-4xl">{projects[activeProject].title}</h2>
           <p className="mt-5 text-lg leading-relaxed text-muted-foreground">{projects[activeProject].description} {projects[activeProject].extendedNote}</p>
-          <div className="mt-8 grid grid-cols-2 gap-3">{projects[activeProject].metrics.map(metric => <div key={metric} className="rounded-2xl border border-foreground/10 bg-background/50 p-4 text-center text-sm font-medium text-primary">{metric}</div>)}</div>
-          <button onClick={() => { setActiveProject(null); document.getElementById('contact')?.scrollIntoView() }} className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90">{workHeading.modalCtaLabel} <ArrowUpRight size={16} /></button>
         </div>
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">{projects[activeProject].metrics.map(metric => <div key={metric} className="rounded-2xl border border-foreground/10 bg-background/50 p-4 text-center text-sm font-medium text-primary transition-colors hover:border-primary/40">{metric}</div>)}</div>
+        <button onClick={() => { setActiveProject(null); document.getElementById('contact')?.scrollIntoView() }} className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-95">{workHeading.modalCtaLabel} <ArrowUpRight size={16} /></button>
       </div>
     </Modal>}
 
     {activeCert !== null && <Modal onClose={() => setActiveCert(null)} labelledBy="cert-modal-title" maxWidthClassName="max-w-[95vw] xl:max-w-5xl" noPadding>
-      <div className="grid lg:grid-cols-[1.1fr_1fr] lg:items-start">
-        <div className="flex aspect-video items-center justify-center overflow-hidden rounded-b-2xl border-b border-foreground/10 bg-foreground/2 lg:aspect-auto lg:h-full lg:rounded-2xl lg:rounded-tl-none lg:border-b-0 lg:border-r">
-          <RemoteImage
-            src={certifications[activeCert].imageUrl}
-            alt={`${certifications[activeCert].name} certificate`}
-            className="h-full w-full cursor-zoom-in object-contain"
-            fallback={<span className="px-6 text-center text-sm text-muted-foreground">No certificate image added yet.</span>}
-            onClick={() => setLightbox({ src: certifications[activeCert].imageUrl ?? '', alt: `${certifications[activeCert].name} certificate` })}
-          />
-        </div>
-        <div className="p-6 sm:p-8 md:p-12">
-          <p className="eyebrow">{certificationsHeading.eyebrow}</p>
-          <h2 id="cert-modal-title" className="mt-5 text-3xl font-semibold sm:text-4xl">{certifications[activeCert].name}</h2>
-          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <span className="flex items-center gap-2"><Building2 size={15} className="text-primary" /> {certifications[activeCert].issuer}</span>
-            <span className="flex items-center gap-2"><Calendar size={15} className="text-primary" /> {certifications[activeCert].year}</span>
-          </div>
+      <div className="flex aspect-video items-center justify-center overflow-hidden rounded-b-2xl bg-foreground/2">
+        <RemoteImage
+          src={certifications[activeCert].imageUrl}
+          alt={`${certifications[activeCert].name} certificate`}
+          className="h-full w-full cursor-zoom-in object-cover"
+          fallback={<span className="px-6 text-center text-sm text-muted-foreground">No certificate image added yet.</span>}
+          onClick={() => setLightbox({ src: certifications[activeCert].imageUrl ?? '', alt: `${certifications[activeCert].name} certificate` })}
+        />
+      </div>
+      <div className="p-6 sm:p-8 md:p-12">
+        <p className="eyebrow">{certificationsHeading.eyebrow}</p>
+        <h2 id="cert-modal-title" className="mt-5 text-3xl font-semibold sm:text-4xl">{certifications[activeCert].name}</h2>
+        <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <span className="flex items-center gap-2"><Building2 size={15} className="text-primary" /> {certifications[activeCert].issuer}</span>
+          <span className="flex items-center gap-2"><Calendar size={15} className="text-primary" /> {certifications[activeCert].year}</span>
         </div>
       </div>
     </Modal>}
