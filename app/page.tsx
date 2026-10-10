@@ -438,11 +438,17 @@ export default function Page() {
       <p>{footer.copyright}</p>
       <div className="flex items-center gap-5">
         {footer.links.map((link) => {
-          const isExternal = /^https?:\/\//.test(link.href)
+          // A link pasted without a protocol (e.g. "linkedin.com/in/you", the
+          // most common way people paste a social profile) would otherwise
+          // resolve as a path on this site instead of navigating out to it —
+          // treat anything that isn't a hash/root/mailto/tel link as missing
+          // "https://" and add it, so any social link actually goes there.
+          const resolvedHref = /^(#|\/|mailto:|tel:|https?:\/\/)/i.test(link.href) ? link.href : `https://${link.href}`
+          const isExternal = /^https?:\/\//i.test(resolvedHref)
           return (
             <a
               key={link.label}
-              href={link.href}
+              href={resolvedHref}
               className="hover:text-foreground"
               {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             >

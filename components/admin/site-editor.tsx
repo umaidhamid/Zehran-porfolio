@@ -451,16 +451,17 @@ const sections: EditorSection[] = [
     id: 'footer',
     label: 'Footer',
     icon: PanelBottom,
+    description: 'For a social media link, paste the full profile URL (e.g. linkedin.com/in/you or https://instagram.com/you) — it opens in a new tab automatically. An in-page link like #contact scrolls there instead.',
     render: (f) => <>
       <TextField {...f} path={['footer', 'copyright']} label="Copyright line" />
       <ArrayEditor
         {...f}
         path={['footer', 'links']}
         itemLabel={(item: any) => item.label}
-        createItem={() => ({ label: 'New link', href: '#' })}
+        createItem={() => ({ label: 'New link', href: '' })}
         renderItem={(itemPath) => <>
           <TextField {...f} path={[...itemPath, 'label']} label="Label" />
-          <TextField {...f} path={[...itemPath, 'href']} label="Href" />
+          <TextField {...f} path={[...itemPath, 'href']} label="Link (social profile URL, or #section)" />
         </>}
       />
     </>,
